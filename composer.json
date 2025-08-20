@@ -11,6 +11,7 @@
         "doctrine/doctrine-bundle": "^2.13",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^2.20",
+        "knplabs/knp-paginator-bundle": "^5.9",
         "sensio/framework-extra-bundle": "^6.2",
         "symfony/console": "5.4.*",
         "symfony/dotenv": "5.4.*",
@@ -19,6 +20,7 @@
         "symfony/http-client": "5.4.*",
         "symfony/maker-bundle": "^1.43",
         "symfony/runtime": "5.4.*",
+        "symfony/security-bundle": "5.4.*",
         "symfony/web-profiler-bundle": "5.4.*",
         "symfony/yaml": "5.4.*"
     },

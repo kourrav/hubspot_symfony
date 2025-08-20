@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4 text-center">
+            <h2>Welcome, {{ user.name }}!</h2>
+            <p class="mt-3">You are logged in successfully.</p>
+            <a href="{{ path('logout') }}" class="btn btn-primary mt-3">Logout</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
