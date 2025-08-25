@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 
 class HubspotWebhookController extends AbstractController
 {
@@ -23,42 +24,44 @@ class HubspotWebhookController extends AbstractController
     }
 
     #[Route('/webhook/hubspot/contact', name: 'hubspot_contact_webhook', methods: ['POST'])]
-    public function __invoke(EntityManagerInterface $em): JsonResponse
+    public function __invoke(Request $request, EntityManagerInterface $em): JsonResponse
     {
         try {
-            // 🔹 Read headers reliably
-            $headers = getallheaders();
-            $signature = $headers['X-Hubspot-Signature-V3'] ?? null;
-            $timestamp = $headers['X-Hubspot-Request-Timestamp'] ?? null;
-            file_put_contents(__DIR__ . '/../../var/log/hubspot_header.log', print_r($signature, true), FILE_APPEND);
-            if (!$signature || !$timestamp) {
-                return new JsonResponse(['error' => 'Missing signature or timestamp'], 403);
-            }
+            $signatureHeader = $request->headers->get('x-hubspot-signature-v3');
+            $timestampHeader = $request->headers->get('x-hubspot-request-timestamp');
 
-            // 🔹 Read raw request body
-            $body = file_get_contents('php://input');
+            $method = $request->getMethod(); // "POST"
+            $uri = $request->getUri();       // full URL: https://yourdomain.com/webhook/hubspot/contact
+            $body = $request->getContent();
 
-            // Build string to sign: timestamp + "." + body
-            $stringToSign = $timestamp . '.' . $body;
+            // HubSpot requires: method + uri + body + timestamp
+            $rawString = $method . $uri . $body . $timestampHeader;
+
             // Compute HMAC-SHA256 and Base64 encode
-            $calculatedSignature = base64_encode(hash_hmac('sha256', $stringToSign, $this->hubspotSecret, true));
-            // 🔹 Verify signature
-            // if (!hash_equals($calculatedSignature, $signature)) {
-            //     file_put_contents(
-            //         __DIR__ . '/../../var/log/hubspot_invalid_signature.log',
-            //         "Invalid signature:\nGot: {$signature}\nExpected: {$calculatedSignature}\nTimestamp: {$timestamp}\nBody (hex): " .$body . "\n\n",
-            //         FILE_APPEND
-            //     );
-            //     return new JsonResponse(['error' => 'Invalid signature'], 403);
-            // }
+            $calculatedSignature = base64_encode(
+                hash_hmac('sha256', $rawString, $this->hubspotSecret, true) // true => raw output
+            );
 
-            // 🔹 Decode JSON payload
-            $data = json_decode($body, true);
-            file_put_contents(__DIR__ . '/../../var/log/hubspot_webhook.log', print_r($data, true), FILE_APPEND);
-
-            if (!$data || !is_array($data)) {
-                return new JsonResponse(['error' => 'Invalid payload'], 400);
+            // Compare
+            if (!hash_equals($calculatedSignature, $signatureHeader)) {
+                file_put_contents(
+                    __DIR__ . '/../../var/log/hubspot_invalid_signature.log',
+                    "Invalid signature:\nGot: {$signatureHeader}\nExpected: {$calculatedSignature}\n\n",
+                    FILE_APPEND
+                );
+                return new JsonResponse(['error' => 'Invalid signature'], 403);
             }
+
+            // ✅ Signature is valid — process webhook
+            $data = json_decode($body, true);
+
+            // Example: log the payload
+            file_put_contents(
+                __DIR__ . '/../../var/log/hubspot_webhook.log',
+                print_r($data, true) . "\n\n",
+                FILE_APPEND
+            );
+
 
             // 🔹 Process each contact event
             foreach ($data as $event) {

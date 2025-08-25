@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Repository\ContactRepository;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,14 +11,16 @@ use Knp\Component\Pager\PaginatorInterface;
 
 class AdminController extends AbstractController
 {
-    #[Route('/admin', name: 'admin_dashboard')]
-    public function dashboard(ContactRepository $contactRepository): Response
+    #[Route('/admin/dashboard', name: 'admin_dashboard')]
+    public function dashboard(UserRepository $userRepo, ContactRepository $contactRepository): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $totalContacts = $contactRepository->count([]);
+        $totalUsers = $userRepo->count([]);
 
         return $this->render('admin/dashboard.html.twig', [
             'totalContacts' => $totalContacts,
+            'totalUsers' => $totalUsers,
         ]);
     }
 
@@ -45,28 +48,6 @@ class AdminController extends AbstractController
             'search' => $search,
         ]);
     }
-    // public function contacts(Request $request, ContactRepository $contactRepository): Response
-    // {
-    //     $this->denyAccessUnlessGranted('ROLE_ADMIN');
-
-    //     $search = $request->query->get('search', '');
-
-    //     if ($search) {
-    //         $contacts = $contactRepository->createQueryBuilder('c')
-    //             ->where('c.name LIKE :search OR c.email LIKE :search')
-    //             ->setParameter('search', "%$search%")
-    //             ->orderBy('c.createdAt', 'DESC')
-    //             ->getQuery()
-    //             ->getResult();
-    //     } else {
-    //         $contacts = $contactRepository->findBy([], ['createdAt' => 'DESC']);
-    //     }
-
-    //     return $this->render('admin/contacts.html.twig', [
-    //         'contacts' => $contacts,
-    //         'search' => $search,
-    //     ]);
-    // }
     
 
    

@@ -20,7 +20,7 @@ security:
             form_login:
                 login_path: login
                 check_path: login
-                default_target_path: dashboard
+                success_handler: App\Security\LoginSuccessHandler
             logout:
                 path: logout
                 target: login
@@ -28,3 +28,5 @@ security:
     access_control:
         - { path: ^/dashboard, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/change-password, roles: ROLE_USER }

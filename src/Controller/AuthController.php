@@ -7,22 +7,29 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class AuthController extends AbstractController
 {
     #[Route('/register', name: 'register')]
-    public function register(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    public function register(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder): Response
     {
         if ($request->isMethod('POST')) {
             $user = new User();
-            $user->setName($request->request->get('name'));
+
+            // Split full name into firstName and lastName
+            $fullName = $request->request->get('name');
+            $names = explode(' ', $fullName, 2);
+            $user->setFirstName($names[0] ?? '');
+            $user->setLastName($names[1] ?? '');
+
             $user->setEmail($request->request->get('email'));
             $user->setPassword(
-                $passwordHasher->hashPassword($user, $request->request->get('password'))
+                $passwordEncoder->hashPassword($user, $request->request->get('password'))
             );
+
             // Assign default role
             $user->setRoles(['ROLE_USER']);
 
@@ -34,6 +41,7 @@ class AuthController extends AbstractController
 
         return $this->render('auth/register.html.twig');
     }
+
 
     #[Route('/login', name: 'login')]
     public function login(AuthenticationUtils $authUtils): Response

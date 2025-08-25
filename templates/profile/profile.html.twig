@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="row">
+                        <!-- Profile Image & Info -->
+                        <div class="col-md-4 text-center border-end">
+                            {% if app.user and app.user.profilePicture %}
+                                <img src="{{ asset('uploads/profiles/' ~ app.user.profilePicture) }}" 
+                                     alt="Profile Image" class="rounded-circle mb-3 shadow-sm" 
+                                     style="width:150px; height:150px; object-fit:cover;">
+                            {% else %}
+                                <img src="{{ asset('images/default-avatar.png') }}" 
+                                     alt="Default Profile" class="rounded-circle mb-3 shadow-sm" 
+                                     style="width:150px; height:150px; object-fit:cover;">
+                            {% endif %}
+
+                            <h4 class="mb-1">{{ app.user.firstName }} {{ app.user.lastName }}</h4>
+                            <p class="text-muted">{{ app.user.email }}</p>
+                        </div>
+
+                        <!-- Edit Forms -->
+                        <div class="col-md-8">
+                            <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit" type="button" role="tab">Edit Profile</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab">Change Password</button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="profileTabsContent">
+                                <!-- Edit Profile Tab -->
+                                <div class="tab-pane fade show active" id="edit" role="tabpanel">
+                                    {{ form_start(form) }}
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    {{ form_label(form.firstName) }}
+                                                    {{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
+                                                    {{ form_errors(form.firstName) }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    {{ form_label(form.lastName) }}
+                                                    {{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
+                                                    {{ form_errors(form.lastName) }}
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    {{ form_label(form.email) }}
+                                                    {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                                                    {{ form_errors(form.email) }}
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    {{ form_label(form.profilePicture) }}
+                                                    {{ form_widget(form.profilePicture, {'attr': {'class': 'form-control'}}) }}
+                                                    {{ form_errors(form.profilePicture) }}
+                                                </div>
+                                            </div>
+
+                                            {# keep CSRF token only #}
+                                            {{ form_widget(form._token) }}
+
+                                            <div class="col-12 text-end">
+                                                <button type="submit" class="btn btn-success px-4">Save Changes</button>
+                                            </div>
+                                        </div>
+                                    {{ form_end(form, {'render_rest': false}) }}
+                                </div>
+
+                                <!-- Change Password Tab -->
+                                <div class="tab-pane fade" id="password" role="tabpanel">
+                                    {{ form_start(passwordForm) }}
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    {{ form_label(passwordForm.plainPassword.first) }}
+                                                    {{ form_widget(passwordForm.plainPassword.first, {'attr': {'class': 'form-control'}}) }}
+                                                    {{ form_errors(passwordForm.plainPassword.first) }}
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    {{ form_label(passwordForm.plainPassword.second) }}
+                                                    {{ form_widget(passwordForm.plainPassword.second, {'attr': {'class': 'form-control'}}) }}
+                                                    {{ form_errors(passwordForm.plainPassword.second) }}
+                                                </div>
+                                            </div>
+
+                                            {# keep CSRF token only #}
+                                            {{ form_widget(passwordForm._token) }}
+
+                                            <div class="col-12 text-end">
+                                                <button type="submit" class="btn btn-warning px-4">Change Password</button>
+                                            </div>
+                                        </div>
+                                    {{ form_end(passwordForm, {'render_rest': false}) }}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     </div>
+</div>
+{% endblock %}

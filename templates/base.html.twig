@@ -3,60 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}My Symfony App{% endblock %}</title>
-    
-    <!-- Bootstrap 5 CSS -->
+    <title>{% block title %}Admin Panel{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Optional custom CSS -->
+    {% block styles %}{% endblock %}
     <style>
         body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            flex-shrink: 0;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            flex-shrink: 0;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
             background-color: #f8f9fa;
         }
-        .card {
-            border-radius: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #6c63ff;
-        }
-        .btn-primary {
-            background-color: #6c63ff;
-            border: none;
-        }
-        .btn-primary:hover {
-            background-color: #574fd6;
+        .profile-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
         }
     </style>
-
-    {% block stylesheets %}{% endblock %}
 </head>
 <body>
+    
+    <div class="content">
+        <!-- 🔹 Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
+                <div class="ms-auto">
+                    {% if app.user %}
+                        <div class="dropdown">
+                            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if app.user.profilePicture %}
+                                    <img src="{{ asset('uploads/profiles/' ~ app.user.profilePicture) }}"
+                                        alt="Profile" class="profile-img me-2">
+                                {% else %}
+                                    <img src="{{ asset('images/default-avatar.png') }}"
+                                        alt="Profile" class="profile-img me-2">
+                                {% endif %}
+                                <span>{{ app.user.firstName }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{{ path('dashboard') }}">Dashboard</a></li> 
+                                 <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ path('user_profile') }}">Profile</a></li> 
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ path('logout') }}">Logout</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{{ path('login') }}" class="btn btn-outline-primary">Login</a>
+                    {% endif %}
+                </div>
+            </nav>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="/">My Symfony App</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto">
-                {% if app.user %}
-                    <li class="nav-item"><a class="nav-link" href="{{ path('dashboard') }}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ path('logout') }}">Logout</a></li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{{ path('login') }}">Login</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ path('register') }}">Register</a></li>
-                {% endif %}
-            </ul>
-        </div>
+            <!-- 🔹 Main Content -->
+            <div class="main-content">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {% block body %}{% endblock %}
+            </div>
     </div>
-</nav>
 
-<div class="container">
-    {% block body %}{% endblock %}
-</div>
-
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-{% block javascripts %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}
+        <script>
+            document.querySelectorAll('.dropdown').forEach(function(el){
+                el.addEventListener('mouseover', function(){
+                    let menu = el.querySelector('.dropdown-menu');
+                    let bsDropdown = new bootstrap.Dropdown(el.querySelector('[data-bs-toggle="dropdown"]'));
+                    bsDropdown.show();
+                });
+                el.addEventListener('mouseleave', function(){
+                    let menu = el.querySelector('.dropdown-menu');
+                    let bsDropdown = new bootstrap.Dropdown(el.querySelector('[data-bs-toggle="dropdown"]'));
+                    bsDropdown.hide();
+                });
+            });
+        </script>
+    {% endblock %}
 </body>
 </html>
